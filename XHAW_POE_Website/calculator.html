@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Course Fee Calculator — Empowering the Nation</title>
+  <link rel="stylesheet" href="CSS/style.css">
+</head>
+<body>
+<header>
+  <img src="Images/empoweringthenationlogo.jpeg" alt="Empowering the Nation Logo" />
+    <a href="index.html">Home</a>
+    <a href="sixmonth.html">Six-Month Courses</a>
+    <a href="sixweek.html">Six-Week Courses</a>
+    <a href="calculator.html">Calculate Fees</a>
+    <a href="calculator.html">Calculator</a>
+    <a href="contact.html">Contact</a>
+    <h1>Contact & Venues</h1>
+  </header>
+
+
+  <!-- ===== Main Content ===== -->
+  <main class="container" role="main" aria-labelledby="pageTitle">
+    <h1 id="pageTitle">Course Fee Calculator</h1>
+
+    <div class="form-row" id="contactInputs">
+      <input type="text" id="name" placeholder="Name" autocomplete="name" />
+      <input type="email" id="email" placeholder="Email" autocomplete="email" />
+      <input type="tel" id="phone" placeholder="Phone" autocomplete="tel" />
+    </div>
+
+    <section aria-labelledby="coursesTitle">
+      <h2 id="coursesTitle" style="font-size:16px;margin:8px 0;color:var(--muted)">Select courses</h2>
+      <div class="courses" id="coursesList">
+        <!-- Courses will be injected here -->
+      </div>
+    </section>
+
+    <div class="controls">
+      <button id="calculateBtn" type="button">Calculate Total</button>
+      <button id="clearBtn" type="button" class="secondary">Clear Selection</button>
+      <div style="margin-left:auto; text-align:right;">
+        <div class="meta" id="selectionMeta">0 course(s) selected</div>
+        <div class="meta">VAT: 15%</div>
+      </div>
+    </div>
+
+    <div class="total" id="result" aria-live="polite" style="display:none"></div>
+
+    <div class="footer-note">
+      Discounts: 2 courses → 5% | 3 courses → 10% | 4+ courses → 15% (before VAT).
+    </div>
+  </main>
+
+  <!-- ===== JavaScript ===== -->
+  <script>
+    const courses = [
+      { id: '1', name: 'First Aid', fee: 1500 },
+      { id: '2', name: 'Sewing', fee: 1500 },
+      { id: '3', name: 'Landscaping', fee: 1500 },
+      { id: '4', name: 'Life Skills', fee: 1500 },
+      { id: '5', name: 'Child Minding', fee: 750 },
+      { id: '6', name: 'Cooking', fee: 750 },
+      { id: '7', name: 'Garden Maintenance', fee: 750 },
+    ];
+
+    const coursesList = document.getElementById('coursesList');
+    const selectionMeta = document.getElementById('selectionMeta');
+    const resultEl = document.getElementById('result');
+
+    function renderCourses() {
+      coursesList.innerHTML = '';
+      courses.forEach(c => {
+        const id = `course-${c.id}`;
+        const label = document.createElement('label');
+        label.className = 'course';
+        label.htmlFor = id;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = id;
+        checkbox.dataset.courseId = c.id;
+        checkbox.addEventListener('change', updateMeta);
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'course-name';
+        nameSpan.textContent = c.name;
+
+        const feeSpan = document.createElement('span');
+        feeSpan.className = 'course-fee';
+        feeSpan.textContent = `R${Number(c.fee).toFixed(2)}`;
+
+        label.appendChild(checkbox);
+        label.appendChild(nameSpan);
+        label.appendChild(feeSpan);
+        coursesList.appendChild(label);
+      });
+    }
+
+    function getSelectedIds() {
+      return Array.from(coursesList.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(ch => ch.dataset.courseId);
+    }
+
+    function updateMeta() {
+      selectionMeta.textContent = `${getSelectedIds().length} course(s) selected`;
+      resultEl.style.display = 'none';
+    }
+
+    function getDiscountRate(count) {
+      if (count === 2) return 0.05;
+      if (count === 3) return 0.1;
+      if (count > 3) return 0.15;
+      return 0;
+    }
+
+    function calculateTotal() {
+      const selectedIds = getSelectedIds();
+      if (selectedIds.length === 0) {
+        resultEl.style.display = 'block';
+        resultEl.textContent = 'Please select at least one course.';
+        return;
+      }
+
+      const subtotal = selectedIds.reduce((acc, id) => {
+        const course = courses.find(c => c.id === id);
+        return acc + (course ? course.fee : 0);
+      }, 0);
+
+      const discountRate = getDiscountRate(selectedIds.length);
+      const discounted = subtotal * (1 - discountRate);
+      const totalWithVat = discounted * 1.15;
+
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = `
+        Subtotal: R${subtotal.toFixed(2)} <br>
+        Discount (${(discountRate * 100).toFixed(0)}%): -R${(subtotal * discountRate).toFixed(2)} <br>
+        After discount: R${discounted.toFixed(2)} <br>
+        VAT (15%): R${(discounted * 0.15).toFixed(2)} <br>
+        <strong>Total (incl. VAT): R${totalWithVat.toFixed(2)}</strong>
+      `;
+    }
+
+    function clearSelection() {
+      document.querySelectorAll('.courses input').forEach(ch => (ch.checked = false));
+      updateMeta();
+    }
+
+    document.getElementById('calculateBtn').addEventListener('click', calculateTotal);
+    document.getElementById('clearBtn').addEventListener('click', clearSelection);
+
+    renderCourses();
+  </script>
+
+  <footer>
+    &copy; 2025 Empowering the Nation | All Rights Reserved
+  </footer>
+  
+</body>
+</html>
